@@ -7,7 +7,7 @@ export class StatsController {
   constructor(private readonly tripService: TripService) {}
 
   @Get('weekly')
-  getTripsByWeekly() {
+  getTripsByWeekly(): Promise<WeeklyStatsDTO> {
     return this.tripService.getWeeklyTrips();
   }
 }

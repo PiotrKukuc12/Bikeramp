@@ -40,7 +40,7 @@ export class TripService {
     return this.tripRepository.insert(newTrip);
   }
 
-  async getWeeklyTrips() {
+  async getWeeklyTrips(): Promise<WeeklyStatsDTO> {
     const trips = await this.tripRepository.find();
     // return trips from yesterday to 7 days ago
     // does not include today, so we need to add 1 day
