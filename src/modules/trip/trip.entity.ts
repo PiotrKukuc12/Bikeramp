@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -14,9 +15,10 @@ export class Trip {
   @Column()
   price: number;
 
-  @Column()
-  distance: number;
+  @Column({ type: 'numeric', precision: 10, scale: 1, nullable: true })
+  distance?: number;
 
-  @Column()
+  @Transform(() => Date, { toPlainOnly: true })
+  @Column('text')
   date: Date;
 }
