@@ -3,7 +3,7 @@ import axios from 'axios';
 import { InsertResult, Repository } from 'typeorm';
 import { Trip } from './trip.entity';
 import * as dotenv from 'dotenv';
-import { WeeklyStatsDTO } from '../stats/dto/stats.dto';
+import { MothlyStatsDTO, WeeklyStatsDTO } from '../stats/dto/stats.dto';
 dotenv.config();
 
 @Injectable()
@@ -49,11 +49,11 @@ export class TripService {
     endDate.setDate(endDate.getDate() - 1);
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 8);
-
     let sum_distane = 0;
     let sum_price = 0;
 
     const tripsInPeriod = trips.filter((trip) => {
+      // lane below is to delete
       const tripDate = new Date(trip.date);
       return tripDate >= startDate && tripDate <= endDate;
     });
@@ -68,5 +68,50 @@ export class TripService {
       total_distance: sum_distane + 'km',
       total_price: sum_price + 'PLN',
     };
+  }
+
+  async getMonthlyTrips(): Promise<MothlyStatsDTO[]> {
+    const trips = await this.tripRepository.find();
+    const endDate = new Date();
+    const result = [];
+
+    const tripsInPeriod = trips.filter((trip) => {
+      // lane below is to delete
+      const tripDate = new Date(trip.date);
+      return (
+        tripDate.getFullYear() === endDate.getFullYear() &&
+        tripDate.getMonth() === endDate.getMonth()
+      );
+    });
+    // for each day in the month calculate the average distance and price
+    for (let i = 0; i < endDate.getDate(); i++) {
+      const day = new Date();
+      day.setDate(i + 1);
+      const dayTrips = tripsInPeriod.filter((trip) => {
+        const tripDate = new Date(trip.date);
+        return tripDate.getDate() === day.getDate();
+      });
+      const sum_distane = dayTrips.reduce((acc, trip) => {
+        return acc + Number(trip.distance);
+      }, 0);
+      const sum_price = dayTrips.reduce((acc, trip) => {
+        return acc + trip.price;
+      }, 0);
+      const avg_distane = Math.round((sum_distane / dayTrips.length) * 10) / 10;
+      const avg_price = Math.round((sum_price / dayTrips.length) * 10) / 10;
+      // if the day has not trips, skip it
+      if (sum_distane !== 0 && sum_price !== NaN && avg_price !== NaN) {
+        result.push({
+          day: day.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+          }),
+          total_distance: sum_distane + 'km',
+          avg_ride: avg_distane + 'km',
+          avg_price: avg_price + 'PLN',
+        });
+      }
+    }
+    return result;
   }
 }
