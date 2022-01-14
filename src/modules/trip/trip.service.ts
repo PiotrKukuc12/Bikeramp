@@ -42,13 +42,13 @@ export class TripService {
 
   async getWeeklyTrips(): Promise<WeeklyStatsDTO> {
     const trips = await this.tripRepository.find();
-    // return trips from yesterday to 7 days ago
-    // does not include today, so we need to add 1 day
-    // to get the correct end date
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() - 1);
+    // startDate =  monday of the current week
+    // endDate = sunday of the current week
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 8);
+    const days = (startDate.getDay() + 7 - 1) % 7;
+    startDate.setDate(startDate.getDate() - days);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 6);
     let sum_distane = 0;
     let sum_price = 0;
 
