@@ -3,6 +3,7 @@ import axios from 'axios';
 import { InsertResult, Repository } from 'typeorm';
 import { Trip } from './trip.entity';
 import * as dotenv from 'dotenv';
+import { WeeklyStatsDTO } from '../stats/dto/stats.dto';
 dotenv.config();
 
 @Injectable()
@@ -33,8 +34,39 @@ export class TripService {
 
     const newTrip = {
       ...trip,
+      date: new Date(trip.date),
       distance: distanceInKm,
     };
     return this.tripRepository.insert(newTrip);
+  }
+
+  async getWeeklyTrips() {
+    const trips = await this.tripRepository.find();
+    // return trips from yesterday to 7 days ago
+    // does not include today, so we need to add 1 day
+    // to get the correct end date
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() - 1);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 8);
+
+    let sum_distane = 0;
+    let sum_price = 0;
+
+    const tripsInPeriod = trips.filter((trip) => {
+      const tripDate = new Date(trip.date);
+      return tripDate >= startDate && tripDate <= endDate;
+    });
+
+    tripsInPeriod.forEach((trip) => {
+      // convert distance from string to int
+      sum_distane += Number(trip.distance);
+      sum_price += trip.price;
+    });
+
+    return {
+      total_distance: sum_distane + 'km',
+      total_price: sum_price + 'PLN',
+    };
   }
 }
