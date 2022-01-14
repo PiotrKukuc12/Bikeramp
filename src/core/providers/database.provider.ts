@@ -1,5 +1,6 @@
 import { createConnection } from 'typeorm';
 import * as dotenv from 'dotenv';
+import { Trip } from 'src/modules/trip/trip.entity';
 dotenv.config();
 
 export const databaseProvider = [
@@ -13,7 +14,7 @@ export const databaseProvider = [
         username: process.env['DB_USER'],
         password: process.env['DB_PASSWORD'],
         database: process.env['DB_NAME'],
-        entities: [],
+        entities: [Trip],
         synchronize: true,
       }),
   },
